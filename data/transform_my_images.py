@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image
 
 # 讀取JSON文件
-with open('../data/47_data.json') as f:
+with open('./47_data.json') as f:
     data = json.load(f)
 
 # 將數據轉換為NumPy數組
@@ -19,5 +19,5 @@ images = images.astype(np.uint8)
 for i in range(len(images)):
     image = images[i]
     image = image.reshape(28, 28)
-    image_path = f'./original_images/image_{i}.jpg'
+    image_path = f'./my_images/image_{i}.jpg'
     Image.fromarray(image).save(image_path)

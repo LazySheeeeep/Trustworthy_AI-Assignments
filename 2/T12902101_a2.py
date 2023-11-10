@@ -58,7 +58,7 @@ showcase = {}
 
 # Iterate over the testing images to generate perturbed version
 for i in range(testing_images_count):
-    image_path = f"./original_images/image_{i}.jpg"
+    image_path = f"../data/my_images/image_{i}.jpg"
     raw_image = Image.open(image_path)
     image = transforms.ToTensor()(raw_image).unsqueeze(0).to(device)
 
