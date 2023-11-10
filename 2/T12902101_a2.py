@@ -56,7 +56,7 @@ for i in range(testing_images_count):
 
     # Forward pass to obtain the predicted label
     output = model(image)
-    _, original_label = torch.max(output.image, 1)
+    original_label = output.argmax().unsqueeze(0)
 
     # Calculate the loss (negative log-likelihood) with respect to the predicted label
     loss = F.nll_loss(output, original_label)
@@ -64,7 +64,7 @@ for i in range(testing_images_count):
     # Backward pass to compute the gradient of the loss with respect to the image
     model.zero_grad()
     loss.backward()
-    data_grad = image.grad.image
+    data_grad = image.grad
 
     for epsilon in epsilons:
         # Perform FGSM attack to generate the perturbed image
@@ -74,7 +74,7 @@ for i in range(testing_images_count):
 
         # Forward pass on the perturbed image to get the predicted label after attack
         output = model(perturbed_image)
-        _, post_attack_label = torch.max(output.image, 1)
+        post_attack_label = output.argmax()
 
         os.makedirs(f"./perturbed_images/e_{str(epsilon).split('.')[1]}", exist_ok=True)
         # Save the perturbed image
