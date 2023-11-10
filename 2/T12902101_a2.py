@@ -36,17 +36,6 @@ model.load_state_dict(torch.load("../mnist_model.pth", map_location="cpu"))
 model.eval()
 print(model)
 
-test_loader = torch.utils.data.DataLoader(
-    datasets.MNIST(
-        "../data",
-        train=False,
-        download=True,
-        transform=transforms.Compose([transforms.ToTensor(), ]),
-    ),
-    batch_size=1,
-    shuffle=True,
-)
-
 '''to do FGSM '''
 
 # Define the epsilon values
