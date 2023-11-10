@@ -32,7 +32,7 @@ class Net(nn.Module):
 
 
 model = Net().to(device)
-model.load_state_dict(torch.load("./mnist_model.pth", map_location="cpu"))
+model.load_state_dict(torch.load("../mnist_model.pth", map_location="cpu"))
 model.eval()
 print(model)
 
