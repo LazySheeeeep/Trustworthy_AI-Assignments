@@ -50,7 +50,7 @@ feature_maps = []
 def plot(img, idx, name):
     plt.subplot(4, testing_images_count, idx)
     plt.imshow(img, cmap="grey")
-    plt.title(name, fontsize=6)
+    plt.title(name, fontsize=8)
     plt.axis("off")
 
 
