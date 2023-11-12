@@ -22,16 +22,16 @@ class Net(nn.Module):
         self.conv2_drop = nn.Dropout2d()
         self.fc1 = nn.Linear(320, 50)
         self.fc2 = nn.Linear(50, 10)
-        self.feature_maps_raw = None
+        self.feature_maps = None
 
     def forward(self, x):
         x = F.relu(F.max_pool2d(self.conv1(x), 2))
         # expose feature maps
-        self.feature_maps_raw = self.conv2(x)
+        self.feature_maps = self.conv2(x)
         # I need the gradient w.r.t. feature maps here
         # b.t.w. the size of each feature map would be 8x8 and in total 20 maps
-        self.feature_maps_raw.retain_grad()
-        x = F.relu(F.max_pool2d(self.conv2_drop(self.feature_maps_raw), 2))
+        self.feature_maps.retain_grad()
+        x = F.relu(F.max_pool2d(self.conv2_drop(self.feature_maps), 2))
         x = x.view(-1, 320)
         x = F.relu(self.fc1(x))
         x = F.dropout(x, training=self.training)
@@ -44,7 +44,7 @@ model.load_state_dict(torch.load("../mnist_model.pth", map_location="cpu"))
 model.eval()
 
 testing_images = []
-feature_maps = []
+grad_CAMs = []
 
 
 def plot(img, idx, name):
@@ -75,8 +75,8 @@ for i in range(testing_images_count):
 for i, image in enumerate(testing_images):
     forth_back(image)
 
-    gradients_all = model.feature_maps_raw.grad.squeeze(0).to(device)
-    feature_map = torch.zeros(feature_res)
+    gradients_all = model.feature_maps.grad.squeeze(0).to(device)
+    grad_CAM = torch.zeros(feature_res)
 
     with torch.no_grad():
         for j in range(model.conv2.out_channels):
@@ -85,13 +85,13 @@ for i, image in enumerate(testing_images):
             # by averaging the gradients(partial derivatives) w.r.t. each channel
             alpha = gradients.view(-1).mean()
             # apply relu to cut off negative part
-            feature_map += F.relu(model.feature_maps_raw[0][j] * alpha)
+            grad_CAM += F.relu(model.feature_maps[0][j] * alpha)
 
-    feature_map = F.pad(feature_map, (1, 1, 1, 1))
-    feature_map = F.interpolate(feature_map.unsqueeze(0).unsqueeze(0), size=input_res, mode='bilinear')
-    feature_map = feature_map.view(input_res)
-    feature_maps.append(feature_map)
-    plot(feature_map.detach().cpu(), i + 1 + testing_images_count, "Class Activation Map")
+    grad_CAM = F.pad(grad_CAM, (1, 1, 1, 1))
+    grad_CAM = F.interpolate(grad_CAM.unsqueeze(0).unsqueeze(0), size=input_res, mode='bilinear')
+    grad_CAM = grad_CAM.view(input_res)
+    grad_CAMs.append(grad_CAM)
+    plot(grad_CAM.detach().cpu(), i + 1 + testing_images_count, "Class Activation Map")
     # zero out the previous grad
     model.zero_grad()
 
@@ -108,8 +108,8 @@ for i, image in enumerate(testing_images):
     plot(guided_grad.detach().cpu(),  i + 1 + testing_images_count * 2, "Guided Backpropagation")
 
     # Guided Grad-CAM: element-wise multiplication
-    guided_gradcam = guided_grad * feature_maps[i]
-    plot(guided_gradcam.detach().cpu(), i + 1 + testing_images_count * 3, "Guided x CAM")
+    guided_CAM = guided_grad * grad_CAMs[i]
+    plot(guided_CAM.detach().cpu(), i + 1 + testing_images_count * 3, "Guided x CAM")
 
     model.zero_grad()
 
