@@ -97,7 +97,7 @@ for i, image in enumerate(testing_images):
 
 # guided backpropagation preparation: backward hooks with relu to clamp out negative partial derivatives
 for layer_with_params in model.children():
-    layer_with_params.register_full_backward_hook(lambda _, grad_input, o: (F.relu(grad_input[0]),))
+    layer_with_params.register_full_backward_pre_hook(lambda _, grad_out: (F.relu(grad_out[0]),))
 
 for i, image in enumerate(testing_images):
     image.requires_grad = True  # need the gradients w.r.t. this input
@@ -114,5 +114,5 @@ for i, image in enumerate(testing_images):
     model.zero_grad()
 
 plt.subplots_adjust(left=0, right=1, bottom=0.005, top=.97, wspace=.0, hspace=0.15)
-plt.savefig("output.png")
+plt.savefig("output_pre.png")
 plt.show()

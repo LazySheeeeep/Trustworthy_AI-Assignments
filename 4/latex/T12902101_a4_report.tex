@@ -54,7 +54,7 @@
     \end{figure}
 \begin{enumerate}
     \item Grad-CAM: Expose feature maps in forward function in the given class. Then input each testing image to model to perform forward pass. After that, produce a one-hot vector as the partial derivatives of output to do the backprop. Finally, you can get gradients and activations from feature maps, with which you can perform operations to get Grad-CAM.
-    \item GuidedBackprop: After gaining all the Grad-CAMs of testing images, it's time to register backward hook on all the layers of the model, in which you can manually specify how backprop should perform. In this context, we need to apply ReLU for each input gradient. Then after setting testing image to require gradients, input it to model and do the backprop. This time the backprop would automatically be guided. Lastly, collect the gradient from the image tensor.
+    \item GuidedBackprop: After gaining all the Grad-CAMs of testing images, it's time to register backward pre-hook on all the layers of the model, in which you can manually modify the gradient before each layer perform calculation during backprop. In this context, we need to apply ReLU. Then after setting testing image to require gradients, input it to model and do the backprop. This time the backprop would automatically be guided. Lastly, collect the gradient from the image tensor.
     \item Guided Grad-CAM: For each testing image,after collecting its grad-CAM and guided gradient, simply element-wise multiply them.
 \end{enumerate}
 
@@ -64,7 +64,7 @@ Since I have 8 testing images, and each of them would be plotted 4 times(Raw, Gr
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=1\linewidth]{../output.png}
+\includegraphics[width=1\linewidth]{../output_pre.png}
 \label{fig:output}
 \caption{Output from T12902101\_a4.py}
 \end{figure}
@@ -129,7 +129,7 @@ Since I have 8 testing images, and each of them would be plotted 4 times(Raw, Gr
 \Procedure{GenerateGuidedGradCAM}{$image$}
     \State $grad\_CAM\gets\Call{GenerateGradCAM}{image}$
     \For{$layer \in \Call{children}{model}$}
-        \State $\Call{Register\_backward\_hook}{layer, BackpropGuide}$
+        \State $\Call{RegisterBackwardPreHook}{layer, BackpropGuide}$
     \EndFor
     \State $grad\_grad\gets\Call{GuidedBackprop}{image}$
     \State $guided\_CAM \gets guided\_grad \odot grad\_CAM$ \Comment{Element-wise multiplication}
